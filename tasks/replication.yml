@@ -1,0 +1,235 @@
+---
+# Configure the MySQL server for replication as a primary or replica
+
+
+- name: replication | check for the mysql_repl_password variable
+  fail:
+    msg: "mysql_repl_password has not been defined."
+  when: mysql_repl_password is not defined
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+
+##
+# Configure the server for replication
+##
+- name: replication | setup replication options
+  ansible.builtin.template:
+    src: replication.cnf.j2
+    dest: /etc/mysql/conf.d/replication.cnf
+    owner: root
+    group: root
+    mode: 0644
+  register: _mysql_replication_conf
+  notify: restart mysql
+  become: yes
+  tags:
+    - mysql_replication_setup
+
+- name: create the log directory
+  ansible.builtin.file:
+    path: "{{ mysql_logdir }}"
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: 0755
+  become: yes
+  tags:
+    - mysql_replication_setup
+
+- name: replication | restart MySQL if replication setup
+  ansible.builtin.service:
+    name: "{{ mysql_service }}"
+    state: restarted
+  become: yes
+  when: _mysql_replication_conf.changed
+  tags:
+    - mysql_replication_setup
+
+
+##
+# Configure the primary
+##
+- name: replication | setup replication user
+  community.mysql.mysql_user:
+    name: "{{ mysql_repl_user }}"
+    password: "{{ mysql_repl_password }}"
+    priv: "*.*:REPLICATION SLAVE"
+    host: "localhost"
+    state: present
+  notify: restart mysql
+  when: mysql_repl_primary|bool
+  tags:
+    - mysql_replication_setup
+
+
+##
+# Determine if the replica is already configured
+##
+- name: replication | determine if replica is already configured
+  community.mysql.mysql_replication:
+    mode: getslave
+  ignore_errors: true
+  register: _mysql_replica_status
+  when: mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+
+- name: replication | fake the replica's status when repairing replication
+  ansible.builtin.set_fact:
+    _mysql_replica_status:
+      failed: true
+  when: mysql_repl_replica|bool and _mysql_replica_status is not defined
+  tags:
+    - mysql_repair_replication
+
+
+##
+# Initially configure a new replica
+##
+- name: replication | stop replica for new configuration
+  community.mysql.mysql_replication:
+    mode: stopslave
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | reset the replication primary
+  community.mysql.mysql_replication:
+    mode: resetmaster
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | flush and lock the tables on the primary
+  ansible.builtin.command: "mysql -e 'FLUSH TABLES WITH READ LOCK;'"
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | get primary status for replica config
+  community.mysql.mysql_replication:
+    mode: getmaster
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  register: _mysql_replication_status
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | dump the data from the primary
+  ansible.builtin.shell: "mysqldump --all-databases --ignore-table=mysql.user > ~/mysql-replication-dump.sql"
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | download the dumped data
+  ansible.builtin.fetch:
+    src: ~/mysql-replication-dump.sql
+    dest: tmp/
+    flat: yes
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | upload the dumped data
+  ansible.builtin.copy:
+    src: tmp/mysql-replication-dump.sql
+    dest: ~/
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | load the dumped data
+  ansible.builtin.shell: "mysql < ~/mysql-replication-dump.sql"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | remove the dumped data from the primary
+  ansible.builtin.file:
+    path: ~/mysql-replication-dump.sql
+    state: absent
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | remove the dumped data from the replica
+  ansible.builtin.file:
+    path: ~/mysql-replication-dump.sql
+    state: absent
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | remove the dumped data from host
+  ansible.builtin.file:
+    path: tmp/mysql-replication-dump.sql
+    state: absent
+  delegate_to: 127.0.0.1
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | reset the replica
+  community.mysql.mysql_replication:
+    mode: resetslave
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+- name: replication | configure replica to replicate with the primary
+  community.mysql.mysql_replication:
+    mode: changemaster
+    master_host: "{{ mysql_repl_primary_ip }}"
+    master_port: "{{ mysql_repl_primary_port }}"
+    master_user: "{{ mysql_repl_user }}"
+    master_password: "{{ mysql_repl_password }}"
+    master_log_file: "{{ _mysql_replication_status.File }}"
+    master_log_pos: "{{ _mysql_replication_status.Position }}"
+  notify: restart mysql
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+
+##
+# Ensure the replica is started
+##
+- name: replication | start replica
+  community.mysql.mysql_replication:
+    mode: startslave
+  when: mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication
+
+
+##
+# Unlock the tables on the primary
+##
+- name: replication | unlock the tables on the master
+  ansible.builtin.command: "mysql -e 'UNLOCK TABLES;'"
+  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  tags:
+    - mysql_replication_setup
+    - mysql_repair_replication

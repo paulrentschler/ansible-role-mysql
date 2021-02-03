@@ -1,2 +1,128 @@
 ---
-# tasks file for mysql
+# Install and configure MySQL server
+
+
+##
+# Install MySQL
+##
+- name: install MySQL
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop: mysql_packages
+  register: _mysql_installed
+  become: yes
+
+
+##
+# Configure MySQL
+##
+- name: ensure log directory exists
+  ansible.builtin.file:
+    path: /var/log/mysql
+    state: directory
+    owner: mysql
+    group: adm
+    mode: 0770
+  become: yes
+
+- name: set mysql_server_id based on ip address
+  ansible.builtin.set_fact:
+    mysql_server_id: "{{ ansible_eth0.ipv4.address|regex_replace("^.{0,3}|[.]") }}"
+  when: mysql_server_id is not defined
+
+- name: main configuration file
+  ansible.builtin.template:
+    src: my.cnf.j2
+    dest: "{{ mysql_file_conf }}"
+    owner: root
+    group: adm
+    mode: 0660
+  notify:
+    - restart mysql
+  become: yes
+
+
+##
+# Set/reset the root password
+##
+- include_tasks: rootpw.yml
+  when: _mysql_installed.changed
+
+
+##
+# Ensure the security of the server
+##
+- name: ensure the MySQL server is running
+  ansible.builtin.service:
+    name: {{ mysql_service }}
+    state: started
+  become: yes
+  when: not _mysql_installed.changed
+  tags:
+    - mysql_security
+
+- name: remove any anonymous users
+  community.mysql.mysql_user:
+    name: ""
+    host: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ inventory_hostname_short }}"
+    - "{{ inventory_hostname }}"
+    - "{{ ansible_hostname }}"
+    - localhost
+    - localhost.localdomain
+    - 127.0.0.1
+    - ::1
+  tags:
+    - mysql_security
+
+- name: remove the additional root accounts
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ inventory_hostname_short }}"
+    - "{{ inventory_hostname }}"
+    - localhost.localdomain
+    - 127.0.0.1
+    - ::1
+  tags:
+    - mysql_security
+
+- name: remove the additional root accounts (ansible_hostname)
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ ansible_hostname }}"
+    state: absent
+  when: ansible_hostname != 'localhost'
+  tags:
+    - mysql_security
+
+- name: remove the test database
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+  tags:
+    - mysql_security
+
+
+##
+# Configure replication
+##
+- include_tasks: replication.yml
+  when: mysql_replication|bool
+
+
+##
+# Start MySQL
+##
+- name: ensure MySQL is started
+  ansible.builtin.service:
+    name: "{{ mysql_service }}"
+    state: started
+    enabled: yes
+  become: yes

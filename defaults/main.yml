@@ -1,2 +1,52 @@
 ---
-# defaults file for mysql
+# defaults for MySQL related variables
+
+mysql_port: 3306
+mysql_bind_address: "127.0.0.1"
+mysql_datadir: /var/lib/mysql
+mysql_logdir: /var/log/mysql
+
+mysql_packages:
+  - python-selinux
+  - mysql-server
+  # - python-mysqldb
+  - python-pymysql
+
+mysql_service: mysql
+
+mysql_file_conf: /etc/mysql/my.cnf
+mysql_pid_file: /var/run/mysqld/mysqld.pid
+mysql_socket: /var/run/mysqld/mysqld.sock
+mysql_binary: /usr/sbin/mysqld
+
+
+
+
+##
+# Replication settings
+#
+# Note: `mysql_server_id` must be UNIQUE when doing replication.
+#       Standard installation tasks set `mysql_server_id` to be the last
+#       octet of the host's IP address unless the `mysql_server_id` variable
+#       is defined.
+##
+mysql_replication: no
+mysql_repl_primary: no
+mysql_repl_replica: no
+mysql_repl_user: replicant
+mysql_repl_password: replicant
+mysql_repl_primary_ip: 127.0.0.1
+mysql_repl_primary_port: 3306
+# this value must be defined elsewhere, there is no valid default value
+mysql_repl_primary_inventory_name: ""
+
+# used by the primary
+mysql_repl_auto_increment: 1
+mysql_repl_increment_offset: 1
+mysql_binary_log: "{{ mysql_logdir }}/binary-log"
+mysql_expire_logs_days: 5
+
+# used by the replica
+mysql_relay_log: "{{ mysql_logdir }}/relay-log"
+mysql_relay_log_space_limit: "2G"
+

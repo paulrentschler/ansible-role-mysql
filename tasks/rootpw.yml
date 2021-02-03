@@ -1,0 +1,32 @@
+---
+# Tasks to set/reset the root account password
+
+
+- name: root password | ensure MySQL is started
+  ansible.builtin.service:
+    name: "{{ mysql_service }}"
+    state: started
+    enabled: yes
+  become: yes
+
+- name: root password | generate random password
+  ansible.builtin.shell: date +%s | sha256sum | base64 | head -c 32 ; echo
+  register: _mysql_random_password
+  when: mysql_root_password is not defined
+  changed_when: false
+
+- name: root password | set a root user password
+  ansible.builtin.command: "/usr/bin/mysqladmin -u root password {% if mysql_root_password is defined %}{{ mysql_root_password }}{% else %}{{ _mysql_random_password.stdout }}{% endif %}"
+
+- name: root password | set the client configuration file
+  ansible.builtin.template:
+    src: client_my.cnf.j2
+    dest: ~/.my.cnf
+    owner: "{{ devops_user|default(ansible_user) }}"
+    mode: 0600
+
+- name: root password | restart MySQL
+  ansible.builtin.service:
+    name: "{{ mysql_service }}"
+    state: restarted
+  become: yes
