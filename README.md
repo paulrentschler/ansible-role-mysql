@@ -105,6 +105,33 @@ mysql_relay_log_space_limit: "2G"
 ```
 
 
+#### Replication watchdog
+
+The role can optionally install a separate [MySQL replication watchdog script](https://github.com/paulrentschler/mysqlwatch) to watch and alert when the replica gets out of sync with the primary.
+
+To install the watchdog, specify:
+
+```yaml
+mysql_repl_watchdog: yes
+```
+
+
+Indicate what email address the alerts will go to.
+
+```yaml
+mysql_repl_watchdog_mailto: root
+```
+
+
+Indicate when the watchdog will be run. Defaults to 4:00pm, 7 days a week.
+
+```yaml
+mysql_repl_watchdog_hour: 16
+mysql_repl_watchdog_min: 0
+mysql_repl_watchdog_days: "*"
+```
+
+
 Role Tags
 ---------
 
@@ -148,7 +175,7 @@ More common example that includes specifying the root password from Ansible Vaul
         mysql_root_password: "{{ mysql_root_password_vaulted }}"
 ```
 
-Complex example that sets up replication.
+Complex example that sets up replication and installs the watchdog on the replica.
 
 ```yaml
 ---
@@ -173,6 +200,7 @@ Complex example that sets up replication.
         mysql_repl_primary_inventory_name: "db_primary"
         mysql_repl_primary_ip: 192.168.0.10
         mysql_repl_replica: yes
+        mysql_repl_watchdog: yes
 ```
 
 

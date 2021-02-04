@@ -1,0 +1,23 @@
+#
+# {{ ansible_managed }}
+#
+
+#
+# Run the MySQL replication watchdog on a regular schedule
+#   installed at: /opt/mysqlwatch
+#
+
+MAILTO={{ mysql_repl_watchdog_mailto }}
+
+# Example of job definition:
+# .----------------- minute (0 - 59)
+# |   .------------- hour (0 - 23)
+# |   |  .---------- day of month (1 - 31)
+# |   |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |   |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |   |  |  |  |
+# *   *  *  *  *  username    command to be executed
+
+### Daily check of the MySQL replication status
+ {{ mysql_repl_watchdog_hour }}  {{ mysql_repl_watchdog_min }}  *  *  {{ mysql_repl_watchdog_days }}  {{ devops_user|default(ansible_user) }}        /usr/bin/python3 /opt/mysqlwatch/mysqlwatch.py
+

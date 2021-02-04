@@ -233,3 +233,28 @@
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
+
+
+##
+# Install/configure the MySQL replication watchdog
+##
+- name: replication | install the watchdog script
+  ansible.builtin.git:
+    repo: "https://github.com/paulrentschler/mysqlwatch.git"
+    dest: /opt/mysqlwatch
+    version: master
+  when: mysql_repl_watchdog|bool
+  tags:
+    - mysql_replication_setup
+
+- name: replication | schedule the watchdog script
+  ansible.builtin.template:
+    src: watch.cron.j2
+    dest: /etc/cron.d/mysqlwatch
+    owner: root
+    group: root
+    mode: 0644
+  become: yes
+  when: mysql_repl_watchdog|bool
+  tags:
+    - mysql_replication_setup

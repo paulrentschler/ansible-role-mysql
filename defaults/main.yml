@@ -1,26 +1,6 @@
 ---
 # defaults for MySQL related variables
 
-mysql_port: 3306
-mysql_bind_address: "127.0.0.1"
-mysql_datadir: /var/lib/mysql
-mysql_logdir: /var/log/mysql
-
-mysql_packages:
-  - python-selinux
-  - mysql-server
-  # - python-mysqldb
-  - python-pymysql
-
-mysql_service: mysql
-
-mysql_file_conf: /etc/mysql/my.cnf
-mysql_pid_file: /var/run/mysqld/mysqld.pid
-mysql_socket: /var/run/mysqld/mysqld.sock
-mysql_binary: /usr/sbin/mysqld
-
-
-
 
 ##
 # Replication settings
@@ -49,4 +29,41 @@ mysql_expire_logs_days: 5
 # used by the replica
 mysql_relay_log: "{{ mysql_logdir }}/relay-log"
 mysql_relay_log_space_limit: "2G"
+
+# install the optional MySQL replication watchdog script
+mysql_repl_watchdog: no
+
+# indicate when the MySQL replication watchdog should run
+mysql_repl_watchdog_hour: 16
+mysql_repl_watchdog_min: 0
+mysql_repl_watchdog_days: "*"
+
+# where the MySQL replication watchdog cron job should send emails to
+mysql_repl_watchdog_mailto: root
+
+
+
+##
+# Standard MySQL settings
+#
+# These rarely change, but can be if needed
+##
+
+mysql_port: 3306
+mysql_bind_address: "127.0.0.1"
+mysql_datadir: /var/lib/mysql
+mysql_logdir: /var/log/mysql
+
+mysql_packages:
+  - python-selinux
+  - mysql-server
+  # - python-mysqldb
+  - python-pymysql
+
+mysql_service: mysql
+
+mysql_file_conf: /etc/mysql/my.cnf
+mysql_pid_file: /var/run/mysqld/mysqld.pid
+mysql_socket: /var/run/mysqld/mysqld.sock
+mysql_binary: /usr/sbin/mysqld
 
