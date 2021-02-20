@@ -16,7 +16,14 @@
   changed_when: false
 
 - name: root password | set a root user password
-  ansible.builtin.command: "/usr/bin/mysqladmin -u root password {% if mysql_root_password is defined %}{{ mysql_root_password }}{% else %}{{ _mysql_random_password.stdout }}{% endif %}"
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/mysqladmin
+      - "-u"
+      - "root"
+      - "password"
+      - "{{ mysql_root_password|default(_mysql_random_password.stdout) }}"
+  become: yes
 
 - name: root password | set the client configuration file for admin users
   ansible.builtin.template:
