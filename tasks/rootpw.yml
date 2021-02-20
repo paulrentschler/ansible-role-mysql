@@ -18,12 +18,13 @@
 - name: root password | set a root user password
   ansible.builtin.command: "/usr/bin/mysqladmin -u root password {% if mysql_root_password is defined %}{{ mysql_root_password }}{% else %}{{ _mysql_random_password.stdout }}{% endif %}"
 
-- name: root password | set the client configuration file
+- name: root password | set the client configuration file for admin users
   ansible.builtin.template:
     src: client_my.cnf.j2
-    dest: ~/.my.cnf
-    owner: "{{ devops_user|default(ansible_user) }}"
+    dest: "/home/{{ item }}/.my.cnf"
+    owner: "{{ item }}"
     mode: 0600
+  loop: "{{ mysql_admin_users }}"
 
 - name: root password | restart MySQL
   ansible.builtin.service:

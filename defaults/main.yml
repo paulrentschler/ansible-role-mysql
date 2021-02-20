@@ -2,6 +2,10 @@
 # defaults for MySQL related variables
 
 
+# users who should be setup to access the server as root
+mysql_admin_users: []
+
+
 ##
 # Replication settings
 #
