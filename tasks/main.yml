@@ -120,6 +120,15 @@
 
 
 ##
+# Allow access through the firewall
+##
+- include_tasks: firewall.yml
+  when: mysql_firewall|bool
+  tags:
+    - firewall_config
+
+
+##
 # Configure replication
 ##
 - include_tasks: replication.yml

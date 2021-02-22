@@ -1,0 +1,24 @@
+---
+# Tasks to set firewall rules allowing access to MySQL
+
+
+- name: combine the hosts and groups
+  set_fact:
+    mysql_firewall_allow_hosts:
+      - "{{ mysql_firewall_allow_hosts }}"
+      - "[{% for _group in mysql_firewall_allow_groups %}{{ groups[_group] }}, {% endfor %}]"
+  tags:
+    - firewall_config
+
+- name: allow access to specific hosts
+  community.general.ufw:
+    rule: allow
+    from_ip: "{{ hostvars[item].ansible_host }}"
+    proto: tcp
+    to_port: "{{ mysql_port }}"
+  loop: "{{ mysql_firewall_allow_hosts }}"
+  loop_control:
+    label: "{{ item }}"
+  become: yes
+  tags:
+    - firewall_config

@@ -54,6 +54,23 @@ mysql_binary: /usr/sbin/mysqld
 ```
 
 
+### Firewall settings
+
+**NOTE:** If the host supports the Ubuntu FireWall (UFW), these settings can be used  to allow access to the MySQL server through the firewall.
+
+Set to "yes" to indicate the firewall should be configured.
+
+    mysql_firewall: no
+
+Specify a list of Ansible hosts that should be allowed access.
+
+    mysql_firewall_allow_hosts: []
+
+Specify a list of Ansible groups that should be allowed access.
+
+    mysql_firewall_allow_groups: []
+
+
 ### Replication settings
 
 To enable replication, several variables must be defined for all the hosts that will be involved in the replication process.
