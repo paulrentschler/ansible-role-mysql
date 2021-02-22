@@ -16,7 +16,7 @@
     from_ip: "{{ hostvars[item].ansible_host }}"
     proto: tcp
     to_port: "{{ mysql_port }}"
-  loop: "{{ mysql_firewall_allow_hosts }}"
+  loop: "{{ mysql_firewall_allow_hosts|flatten }}"
   loop_control:
     label: "{{ item }}"
   become: yes
