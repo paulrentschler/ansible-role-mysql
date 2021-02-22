@@ -31,7 +31,8 @@
     dest: "/home/{{ item }}/.my.cnf"
     owner: "{{ item }}"
     mode: 0600
-  loop: "{{ mysql_admin_users }}"
+  loop: "{{ mysql_admin_users + [devops_user|default(ansible_user)] }}"
+  become: yes
 
 - name: root password | restart MySQL
   ansible.builtin.service:

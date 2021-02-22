@@ -58,7 +58,9 @@
     priv: "*.*:REPLICATION SLAVE"
     host: "localhost"
     state: present
+    login_unix_socket: "{{ mysql_socket }}"
   notify: restart mysql
+  become: yes
   when: mysql_repl_primary|bool
   tags:
     - mysql_replication_setup
@@ -70,8 +72,10 @@
 - name: replication | determine if replica is already configured
   community.mysql.mysql_replication:
     mode: getslave
+    login_unix_socket: "{{ mysql_socket }}"
   ignore_errors: true
   register: _mysql_replica_status
+  become: yes
   when: mysql_repl_replica|bool
   tags:
     - mysql_replication_setup
@@ -91,7 +95,8 @@
 - name: replication | stop replica for new configuration
   community.mysql.mysql_replication:
     mode: stopslave
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -99,6 +104,8 @@
 - name: replication | reset the replication primary
   community.mysql.mysql_replication:
     mode: resetmaster
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   when: _mysql_replica_status.failed and mysql_repl_replica|bool
   tags:
@@ -108,7 +115,7 @@
 - name: replication | flush and lock the tables on the primary
   ansible.builtin.command: "mysql -e 'FLUSH TABLES WITH READ LOCK;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  become: yes
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -190,7 +197,8 @@
 - name: replication | reset the replica
   community.mysql.mysql_replication:
     mode: resetslave
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -204,8 +212,9 @@
     master_password: "{{ mysql_repl_password }}"
     master_log_file: "{{ _mysql_replication_status.File }}"
     master_log_pos: "{{ _mysql_replication_status.Position }}"
+    login_unix_socket: "{{ mysql_socket }}"
   notify: restart mysql
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  become: yes
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -217,6 +226,8 @@
 - name: replication | start replica
   community.mysql.mysql_replication:
     mode: startslave
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
   when: mysql_repl_replica|bool
   tags:
     - mysql_replication_setup
@@ -229,7 +240,7 @@
 - name: replication | unlock the tables on the master
   ansible.builtin.command: "mysql -e 'UNLOCK TABLES;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  become: yes
   tags:
     - mysql_replication_setup
     - mysql_repair_replication

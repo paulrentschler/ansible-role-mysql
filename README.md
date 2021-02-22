@@ -21,12 +21,16 @@ A password for the root user is not specified by default and if left undefined a
 mysql_root_password: "{{ mysql_root_password_vaulted }}"
 ```
 
+**NOTE:** this is not needed with MySQL 5.7+
+
 
 The following variables are available with defaults defined in `defaults/main.yml`:
 
 Specify users who should be setup to access the server as root:
 
     mysql_admin_users: []
+
+**NOTE:** this is not needed with MySQL 5.7+
 
 
 These variables generally do not (and probably should not) be changed as they are pretty standard for all MySQL installations:
