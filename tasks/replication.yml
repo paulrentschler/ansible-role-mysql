@@ -133,7 +133,12 @@
     - mysql_repair_replication
 
 - name: replication | dump the data from the primary
-  ansible.builtin.shell: "mysqldump --all-databases --ignore-table=mysql.user > ~/mysql-replication-dump.sql"
+  community.mysql.mysql_db:
+    state: dump
+    name: all
+    master_data: 1
+    target: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
+    login_unix_socket: "{{ mysql_socket }}"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -143,8 +148,8 @@
 
 - name: replication | download the dumped data
   ansible.builtin.fetch:
-    src: ~/mysql-replication-dump.sql
-    dest: tmp/
+    src: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
+    dest: "{{ playbook_tmp|default('./tmp') }}/"
     flat: yes
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -154,16 +159,20 @@
 
 - name: replication | upload the dumped data
   ansible.builtin.copy:
-    src: tmp/mysql-replication-dump.sql
-    dest: ~/
+    src: "{{ playbook_tmp|default('./tmp') }}/mysql-replication-dump.sql"
+    dest: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
 
 - name: replication | load the dumped data
-  ansible.builtin.shell: "mysql < ~/mysql-replication-dump.sql"
   community.mysql.mysql_db:
+    state: import
+    name: all
+    target: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
+    login_unix_socket: "{{ mysql_socket }}"
+  become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
@@ -171,7 +180,7 @@
 
 - name: replication | remove the dumped data from the primary
   ansible.builtin.file:
-    path: ~/mysql-replication-dump.sql
+    path: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
     state: absent
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -181,7 +190,7 @@
 
 - name: replication | remove the dumped data from the replica
   ansible.builtin.file:
-    path: ~/mysql-replication-dump.sql
+    path: "/home/{{ devops_user|default(ansible_user) }}/mysql-replication-dump.sql"
     state: absent
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
