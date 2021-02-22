@@ -37,14 +37,14 @@ These variables generally do not (and probably should not) be changed as they ar
 
 ```yaml
 mysql_port: 3306
-mysql_bind_address: "127.0.0.1"
+mysql_bind_address: "{% if mysql_repl_primary|bool %}{{ ansible_host }}{% else %}127.0.0.1{% endif %}"
 mysql_datadir: /var/lib/mysql
 mysql_logdir: /var/log/mysql
 
 mysql_packages:
-  - python-selinux
+  - python3-selinux
   - mysql-server
-  - python-pymysql
+  - python3-pymysql
 
 mysql_service: mysql
 mysql_file_conf: /etc/mysql/my.cnf
@@ -52,6 +52,8 @@ mysql_pid_file: /var/run/mysqld/mysqld.pid
 mysql_socket: /var/run/mysqld/mysqld.sock
 mysql_binary: /usr/sbin/mysqld
 ```
+
+**NOTE:** the `mysql_bind_address` above will default to the localhost loopback address (127.0.0.1) unless the host is a primary replication server then it will use the public IP address so that the replica servers can connect to it.
 
 
 ### Firewall settings
