@@ -56,12 +56,15 @@
     name: "{{ mysql_repl_user }}"
     password: "{{ mysql_repl_password }}"
     priv: "*.*:REPLICATION SLAVE"
-    host: "localhost"
+    host: "{{ hostvars[item].ansible_host }}"
     state: present
     login_unix_socket: "{{ mysql_socket }}"
-  notify: restart mysql
+  loop: "{{ groups.datareplica }}"
+  loop_control:
+    label: "{{ item }}"
   become: yes
   when: mysql_repl_primary|bool
+  notify: restart mysql
   tags:
     - mysql_replication_setup
 
