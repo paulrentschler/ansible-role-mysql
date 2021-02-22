@@ -34,11 +34,12 @@
 
 - name: main configuration file
   ansible.builtin.template:
-    src: my.cnf.j2
+    src: mysqld.cnf.j2
     dest: "{{ mysql_file_conf }}"
     owner: root
     group: adm
-    mode: 0660
+    mode: 0644
+    backup: yes
   notify:
     - restart mysql
   become: yes
