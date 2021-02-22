@@ -97,6 +97,7 @@
     mode: stopslave
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -107,7 +108,7 @@
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -116,6 +117,7 @@
   ansible.builtin.command: "mysql -e 'FLUSH TABLES WITH READ LOCK;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -133,7 +135,8 @@
 - name: replication | dump the data from the primary
   ansible.builtin.shell: "mysqldump --all-databases --ignore-table=mysql.user > ~/mysql-replication-dump.sql"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -144,7 +147,7 @@
     dest: tmp/
     flat: yes
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -153,14 +156,15 @@
   ansible.builtin.copy:
     src: tmp/mysql-replication-dump.sql
     dest: ~/
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
 
 - name: replication | load the dumped data
   ansible.builtin.shell: "mysql < ~/mysql-replication-dump.sql"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  community.mysql.mysql_db:
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -170,7 +174,7 @@
     path: ~/mysql-replication-dump.sql
     state: absent
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -179,7 +183,7 @@
   ansible.builtin.file:
     path: ~/mysql-replication-dump.sql
     state: absent
-  when: _mysql_replica_status.failed and mysql_repl_replica|bool
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -199,6 +203,7 @@
     mode: resetslave
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -215,6 +220,7 @@
     login_unix_socket: "{{ mysql_socket }}"
   notify: restart mysql
   become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
@@ -241,6 +247,7 @@
   ansible.builtin.command: "mysql -e 'UNLOCK TABLES;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   become: yes
+  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
