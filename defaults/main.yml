@@ -25,6 +25,14 @@ mysql_firewall_allow_groups: []
 
 
 ##
+# Security settings
+##
+
+mysql_force_tls: no
+
+
+
+##
 # Replication settings
 #
 # Note: `mysql_server_id` must be UNIQUE when doing replication.

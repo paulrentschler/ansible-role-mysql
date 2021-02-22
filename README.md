@@ -73,6 +73,17 @@ Specify a list of Ansible groups that should be allowed access.
     mysql_firewall_allow_groups: []
 
 
+### Security settings
+
+To force SSL/TLS encrypted connections, change this to "yes".
+
+    mysql_force_tls: no
+
+**NOTE:** When this is enabled, all clients must connect via SSL/TLS or the unix socket.
+
+**NOTE:** This will also cause replication to be configured to use SSL/TLS connections (if replication is configured).
+
+
 ### Replication settings
 
 To enable replication, several variables must be defined for all the hosts that will be involved in the replication process.

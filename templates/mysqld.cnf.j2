@@ -8,58 +8,58 @@
 #
 
 [client]
-port                    = {{ mysql_port }}
-socket                  = {{ mysql_socket }}
+port                      = {{ mysql_port }}
+socket                    = {{ mysql_socket }}
 
 [mysqld_safe]
-socket                  = {{ mysql_socket }}
-nice                    = 0
+socket                    = {{ mysql_socket }}
+nice                      = 0
 
 [mysqld]
 #
 # Basic settings
 #
-user                    = mysql
-pid-file                = {{ mysql_pid_file }}
-socket                  = {{ mysql_socket }}
-port                    = {{ mysql_port }}
-basedir                 = /usr
-datadir                 = {{ mysql_datadir }}
-tmpdir                  = /tmp
+user                      = mysql
+pid-file                  = {{ mysql_pid_file }}
+socket                    = {{ mysql_socket }}
+port                      = {{ mysql_port }}
+basedir                   = /usr
+datadir                   = {{ mysql_datadir }}
+tmpdir                    = /tmp
 {% if ansible_os_family == 'Debian' %}
-lc-messages-dir         = /usr/share/mysql
+lc-messages-dir           = /usr/share/mysql
 {% endif %}
 skip-external-locking
-bind-address            = {{ mysql_bind_address }}
+bind-address              = {{ mysql_bind_address }}
 
 
 #
 # Fine tuning
 #
-key_buffer_size         = 16M
-max_allowed_packet      = 16M
-thread_stack            = 192K
-thread_cache_size       = 8
+key_buffer_size           = 16M
+max_allowed_packet        = 16M
+thread_stack              = 192K
+thread_cache_size         = 8
 
 # This replaces the startup script and checks MyISAM tables if needed
 # the first time they are touched
-myisam-recover-options  = BACKUP
+myisam-recover-options    = BACKUP
 
 
 #
 # Query cache configuration
 #
-query_cache_limit       = 1M
-query_cache_size        = 16M
+query_cache_limit         = 1M
+query_cache_size          = 16M
 
 
 #
 # Logging and replication
 #
-log_error               = /var/log/mysql/error.log
-server-id               = {{ mysql_server_id|default('1') }}
-expire_logs_days        = 10
-max_binlog_size         = 100M
+log_error                 = /var/log/mysql/error.log
+server-id                 = {{ mysql_server_id|default('1') }}
+expire_logs_days          = 10
+max_binlog_size           = 100M
 
 
 #
@@ -67,8 +67,13 @@ max_binlog_size         = 100M
 #
 
 # Disabling symbolic-links is recommended to prevent assorted security risks
-symbolic-links          = 0
+symbolic-links            = 0
 
-# ssl-ca                  = /etc/mysql/cacert.pem
-# ssl-cert                = /etc/mysql/server-cert.pem
-# ssl-key                 = /etc/mysql/server-key.pem
+{% if mysql_force_tls|bool %}
+# Require secure transport for connections (TLS or sockets)
+require-secure-transport  = ON
+{% endif %}
+
+# ssl-ca                    = /etc/mysql/cacert.pem
+# ssl-cert                  = /etc/mysql/server-cert.pem
+# ssl-key                   = /etc/mysql/server-key.pem
