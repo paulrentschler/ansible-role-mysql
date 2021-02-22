@@ -59,10 +59,11 @@ mysql_datadir: /var/lib/mysql
 mysql_logdir: /var/log/mysql
 
 mysql_packages:
-  - python-selinux
+  - python3-selinux
   - mysql-server
   # - python-mysqldb
-  - python-pymysql
+  # - python-pymysql
+  - python3-pymysql
 
 mysql_service: mysql
 
