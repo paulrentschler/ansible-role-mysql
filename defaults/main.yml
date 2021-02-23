@@ -45,8 +45,8 @@ mysql_repl_primary: no
 mysql_repl_replica: no
 mysql_repl_user: replicant
 mysql_repl_password: replicant
-mysql_repl_primary_ip: 127.0.0.1
-mysql_repl_primary_port: 3306
+mysql_repl_primary_ip: "127.0.0.1"
+mysql_repl_primary_port: "3306"
 # this value must be defined elsewhere, there is no valid default value
 mysql_repl_primary_inventory_name: ""
 
@@ -79,7 +79,7 @@ mysql_repl_watchdog_mailto: root
 # These rarely change, but can be if needed
 ##
 
-mysql_port: 3306
+mysql_port: "3306"
 mysql_bind_address: "{% if mysql_repl_primary|bool %}{{ ansible_host }}{% else %}127.0.0.1{% endif %}"
 mysql_datadir: /var/lib/mysql
 mysql_logdir: /var/log/mysql
