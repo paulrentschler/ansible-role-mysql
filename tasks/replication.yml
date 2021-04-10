@@ -117,7 +117,11 @@
     - mysql_repair_replication
 
 - name: replication | flush and lock the tables on the primary
-  ansible.builtin.command: "mysql -e 'FLUSH TABLES WITH READ LOCK;'"
+  ansible.builtin.command:
+    argv:
+      - mysql
+      - "-e"
+      - "'FLUSH TABLES WITH READ LOCK;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -245,7 +249,11 @@
 # Unlock the tables on the primary
 ##
 - name: replication | unlock the tables on the master
-  ansible.builtin.command: "mysql -e 'UNLOCK TABLES;'"
+  ansible.builtin.command:
+    argv:
+      - mysql
+      - "-e"
+      - "'UNLOCK TABLES;'"
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
   become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
