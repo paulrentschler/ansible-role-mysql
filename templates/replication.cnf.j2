@@ -15,7 +15,8 @@ auto-increment-increment = {{ mysql_repl_auto_increment }}
 auto-increment-offset = {{ mysql_repl_increment_offset }}
 
 log-bin = {{ mysql_binary_log }}
-expire-logs-days = {{ mysql_expire_logs_days }}
+#expire-logs-days = {{ mysql_expire_logs_days }}
+binlog_expire_logs = {{ mysql_expire_logs_days }}
 {% endif %}
 
 {% if mysql_replication|bool and mysql_repl_replica|bool %}

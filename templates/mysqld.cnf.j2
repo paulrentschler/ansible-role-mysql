@@ -49,7 +49,7 @@ myisam-recover-options    = BACKUP
 #
 # Query cache configuration
 #
-query_cache_limit         = 1M
+#query_cache_limit         = 1M
 query_cache_size          = 16M
 
 
@@ -58,7 +58,8 @@ query_cache_size          = 16M
 #
 log_error                 = /var/log/mysql/error.log
 server-id                 = {{ mysql_server_id|default('1') }}
-expire_logs_days          = 10
+#expire_logs_days          = 10
+binlog_expire_logs        = 10
 max_binlog_size           = 100M
 
 
@@ -67,7 +68,7 @@ max_binlog_size           = 100M
 #
 
 # Disabling symbolic-links is recommended to prevent assorted security risks
-symbolic-links            = 0
+#symbolic-links            = 0
 
 {% if mysql_force_tls|bool %}
 # Require secure transport for connections (TLS or sockets)

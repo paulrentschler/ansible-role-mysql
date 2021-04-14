@@ -27,7 +27,7 @@
   tags:
     - mysql_replication_setup
 
-- name: create the log directory
+- name: replication | create the log directory
   ansible.builtin.file:
     path: "{{ mysql_logdir }}"
     state: directory
