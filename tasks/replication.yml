@@ -116,18 +116,19 @@
     - mysql_replication_setup
     - mysql_repair_replication
 
-- name: replication | flush and lock the tables on the primary
-  ansible.builtin.command:
-    argv:
-      - mysql
-      - "-e"
-      - "'FLUSH TABLES WITH READ LOCK;'"
-  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  become: yes
-  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
-  tags:
-    - mysql_replication_setup
-    - mysql_repair_replication
+### NOTE: this likely does not do what we think/hope it does
+# - name: replication | flush and lock the tables on the primary
+#   ansible.builtin.command:
+#     argv:
+#       - mysql
+#       - "-e"
+#       - "'FLUSH TABLES WITH READ LOCK;'"
+#   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+#   become: yes
+#   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
+#   tags:
+#     - mysql_replication_setup
+#     - mysql_repair_replication
 
 - name: replication | dump the data from the primary
   community.mysql.mysql_db:
@@ -248,18 +249,19 @@
 ##
 # Unlock the tables on the primary
 ##
-- name: replication | unlock the tables on the master
-  ansible.builtin.command:
-    argv:
-      - mysql
-      - "-e"
-      - "'UNLOCK TABLES;'"
-  delegate_to: "{{ mysql_repl_primary_inventory_name }}"
-  become: yes
-  when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
-  tags:
-    - mysql_replication_setup
-    - mysql_repair_replication
+### NOTE: this likely does not do what we think/hope it does
+# - name: replication | unlock the tables on the master
+#   ansible.builtin.command:
+#     argv:
+#       - mysql
+#       - "-e"
+#       - "'UNLOCK TABLES;'"
+#   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
+#   become: yes
+#   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
+#   tags:
+#     - mysql_replication_setup
+#     - mysql_repair_replication
 
 
 ##
