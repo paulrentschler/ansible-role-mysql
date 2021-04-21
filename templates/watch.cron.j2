@@ -9,6 +9,10 @@
 
 MAILTO={{ mysql_repl_watchdog_mailto }}
 
+{% set min = mysql_repl_watchdog_min %}
+{% set hr = mysql_repl_watchdog_hour %}
+{% set days = mysql_repl_watchdog_days %}
+
 # Example of job definition:
 # .----------------- minute (0 - 59)
 # |   .------------- hour (0 - 23)
@@ -18,6 +22,5 @@ MAILTO={{ mysql_repl_watchdog_mailto }}
 # |   |  |  |  |
 # *   *  *  *  *  username    command to be executed
 
-### Daily check of the MySQL replication status
- {{ mysql_repl_watchdog_hour }}  {{ mysql_repl_watchdog_min }}  *  *  {{ mysql_repl_watchdog_days }}  {{ devops_user|default(ansible_user) }}        /usr/bin/python3 /opt/mysqlwatch/mysqlwatch.py
+ {{min}}  {{hr}}  *  *  {{days}}  root        /usr/bin/python3 /opt/mysqlwatch/mysqlwatch.py
 
