@@ -143,6 +143,8 @@
   tags:
     - mysql_replication_setup
     - mysql_repair_replication
+    - mysql_replication_cron
+    - cron
 
 
 ##
