@@ -20,6 +20,8 @@
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   register: _mysql_version
+  tags: always
+
 
 
 ##
@@ -67,7 +69,6 @@
     name: "{{ mysql_service }}"
     state: started
   become: yes
-  when: not _mysql_installed.changed
   tags:
     - mysql_security
 
@@ -129,7 +130,8 @@
 ##
 # Allow access through the firewall
 ##
-- include_tasks: firewall.yml
+- name: firewall configuration
+  include_tasks: firewall.yml
   when: mysql_firewall|bool
   tags:
     - firewall_config
@@ -138,7 +140,8 @@
 ##
 # Configure replication
 ##
-- include_tasks: replication.yml
+- name: replication configuration
+  include_tasks: replication.yml
   when: mysql_replication|bool
   tags:
     - mysql_replication_setup

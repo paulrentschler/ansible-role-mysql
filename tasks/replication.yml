@@ -74,7 +74,7 @@
 ##
 - name: replication | determine if replica is already configured
   community.mysql.mysql_replication:
-    mode: getreplica
+    mode: "get{% if _mysql_version.version.major < 8 %}slave{% else %}replica{% endif %}"
     login_unix_socket: "{{ mysql_socket }}"
   ignore_errors: true
   register: _mysql_replica_status
@@ -97,7 +97,7 @@
 ##
 - name: replication | stop replica for new configuration
   community.mysql.mysql_replication:
-    mode: stopreplica
+    mode: "stop{% if _mysql_version.version.major < 8 %}slave{% else %}replica{% endif %}"
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -207,7 +207,7 @@
 
 - name: replication | reset the replica
   community.mysql.mysql_replication:
-    mode: resetreplica
+    mode: "reset{% if _mysql_version.version.major < 8 %}slave{% else %}replica{% endif %}"
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   when: "(not _mysql_replica_status.Is_Slave|default(false)|bool) and mysql_repl_replica|bool"
@@ -237,7 +237,7 @@
 ##
 - name: replication | start replica
   community.mysql.mysql_replication:
-    mode: startreplica
+    mode: "start{% if _mysql_version.version.major < 8 %}slave{% else %}replica{% endif %}"
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   when: mysql_repl_replica|bool
