@@ -10,10 +10,17 @@
 [client]
 port                      = {{ mysql_port }}
 socket                    = {{ mysql_socket }}
+default-character-set     = {{ mysql_char_set|default('utf8mb4') }}
+
+
+[mysql]
+default-character-set     = {{ mysql_char_set|default('utf8mb4') }}
+
 
 [mysqld_safe]
 socket                    = {{ mysql_socket }}
 nice                      = 0
+
 
 [mysqld]
 #
@@ -31,6 +38,18 @@ lc-messages-dir           = /usr/share/mysql
 {% endif %}
 skip-external-locking
 bind-address              = {{ mysql_bind_address }}
+
+
+#
+# Character encoding
+#
+character-set-client-handshake = FALSE
+character-set-server      = {{ mysql_char_set|default('utf8mb4') }}
+{% if mysql_collation is defined and mysql_collation %}
+collation-server          = {{ mysql_collation }}
+{% elif mysql_char_set|default('utf8mb4') == 'utf8mb4' %}
+collation-server          = {% if _mysql_version.version.major < 8 %}utf8mb4_unicode_ci{% else %}utf8mb4_0900_ai_ci{% endif %}
+{% endif %}
 
 
 #
