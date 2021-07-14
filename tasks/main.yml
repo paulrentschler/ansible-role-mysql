@@ -54,6 +54,33 @@
   become: yes
 
 
+
+##
+# Set the timezone data
+##
+- name: populate MySQL timezone tables
+  block:
+    - name: timezones | generate the SQL statements
+      ansible.builtin.shell: mysql_tzinfo_to_sql /usr/share/zoneinfo > /tmp/zoneinfo.sql
+      args:
+        executable: /bin/bash
+
+    - name: timezones | load the timezone data
+      ansible.builtin.shell: mysql mysql < /tmp/zoneinfo.sql
+      args:
+        executable: /bin/bash
+      become: yes
+
+  always:
+    - name: timezones | remove the timezone data
+      ansible.builtin.file:
+        path: /tmp/zoneinfo.sql
+        state: absent
+      become: yes
+  when: _mysql_installed is changed
+
+
+
 ##
 # Set/reset the root password
 ##
