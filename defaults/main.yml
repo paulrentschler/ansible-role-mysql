@@ -82,19 +82,4 @@ mysql_repl_watchdog_mailto: root
 mysql_port: "3306"
 mysql_bind_address: "{% if mysql_repl_primary|bool %}{{ ansible_host }}{% else %}127.0.0.1{% endif %}"
 mysql_datadir: /var/lib/mysql
-mysql_logdir: /var/log/mysql
-
-mysql_packages:
-  - python3-selinux
-  - mysql-server
-  # - python-mysqldb
-  # - python-pymysql
-  - python3-pymysql
-
-mysql_service: mysql
-
-mysql_file_conf: /etc/mysql/mysql.conf.d/mysqld.cnf
-mysql_pid_file: /var/run/mysqld/mysqld.pid
-mysql_socket: /var/run/mysqld/mysqld.sock
-mysql_binary: /usr/sbin/mysqld
 

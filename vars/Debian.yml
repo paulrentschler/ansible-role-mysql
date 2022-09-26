@@ -1,0 +1,19 @@
+---
+# MySQL variables for Debian-based systems
+
+
+mysql_service: mysql
+
+mysql_binary: /usr/sbin/mysqld
+mysql_file_conf: /etc/mysql/mysql.conf.d/mysqld.cnf
+mysql_logdir: /var/log/mysql
+mysql_pid_file: /var/run/mysqld/mysqld.pid
+mysql_socket: /var/run/mysqld/mysqld.sock
+
+mysql_packages:
+  - python3-selinux
+  - mysql-server
+  # - python-mysqldb
+  # - python-pymysql
+  - python3-pymysql
+
