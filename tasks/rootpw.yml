@@ -25,6 +25,14 @@
       - "{{ mysql_root_password|default(_mysql_random_password.stdout) }}"
   become: yes
 
+- name: root password | set the client configuration file for root
+  ansible.builtin.template:
+    src: client_my.cnf.j2
+    dest: "/root/.my.cnf"
+    owner: "root"
+    mode: 0600
+  become: yes
+
 - name: root password | set the client configuration file for admin users
   ansible.builtin.template:
     src: client_my.cnf.j2

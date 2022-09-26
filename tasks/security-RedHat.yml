@@ -1,0 +1,57 @@
+---
+# Ensure the security of the MySQL server on RedHat-based systems
+
+
+- name: "security : remove any anonymous users"
+  community.mysql.mysql_user:
+    name: ""
+    host: "{{ item }}"
+    state: absent
+    config_file: "/root/.my.cnf"
+  become: yes
+  loop:
+    - "{{ inventory_hostname_short }}"
+    - "{{ inventory_hostname }}"
+    - "{{ ansible_hostname }}"
+    - localhost
+    - localhost.localdomain
+    - "127.0.0.1"
+    - ::1
+  tags:
+    - mysql_security
+
+- name: "security : remove the additional root accounts"
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: absent
+    config_file: "/root/.my.cnf"
+  become: yes
+  loop:
+    - "{{ inventory_hostname_short }}"
+    - "{{ inventory_hostname }}"
+    - localhost.localdomain
+    - "127.0.0.1"
+    - ::1
+  tags:
+    - mysql_security
+
+- name: "security : remove the additional root accounts (ansible_hostname)"
+  community.mysql.mysql_user:
+    name: root
+    host: "{{ ansible_hostname }}"
+    state: absent
+    config_file: "/root/.my.cnf"
+  become: yes
+  when: ansible_hostname != 'localhost'
+  tags:
+    - mysql_security
+
+- name: "security : remove the test database"
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    config_file: "/root/.my.cnf"
+  become: yes
+  tags:
+    - mysql_security

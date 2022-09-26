@@ -19,12 +19,26 @@
   register: _mysql_installed
   become: yes
 
-- name: get the version of MySQL
+- name: set the root password
+  include_tasks: rootpw.yml
+  when: _mysql_installed.changed and ansible_os_family == 'RedHat'
+
+- name: get the version of MySQL (Debian)
   community.mysql.mysql_info:
     filter: version
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   register: _mysql_version
+  when: ansible_os_family == 'Debian'
+  tags: always
+
+- name: get the version of MySQL (RedHat)
+  community.mysql.mysql_info:
+    filter: version
+    config_file: "/root/.my.cnf"
+  become: yes
+  register: _mysql_version
+  when: ansible_os_family == 'RedHat'
   tags: always
 
 
@@ -87,13 +101,6 @@
 
 
 ##
-# Set/reset the root password
-##
-# - include_tasks: rootpw.yml
-#   when: _mysql_installed.changed
-
-
-##
 # Ensure the security of the server
 ##
 - name: ensure the MySQL server is running
@@ -104,59 +111,11 @@
   tags:
     - mysql_security
 
-- name: remove any anonymous users
-  community.mysql.mysql_user:
-    name: ""
-    host: "{{ item }}"
-    state: absent
-    login_unix_socket: "{{ mysql_socket }}"
-  become: yes
-  loop:
-    - "{{ inventory_hostname_short }}"
-    - "{{ inventory_hostname }}"
-    - "{{ ansible_hostname }}"
-    - localhost
-    - localhost.localdomain
-    - "127.0.0.1"
-    - ::1
+- name: ensure the security of the MySQL server
+  include_tasks: "security-{{ ansible_os_family }}.yml"
   tags:
     - mysql_security
 
-- name: remove the additional root accounts
-  community.mysql.mysql_user:
-    name: root
-    host: "{{ item }}"
-    state: absent
-    login_unix_socket: "{{ mysql_socket }}"
-  become: yes
-  loop:
-    - "{{ inventory_hostname_short }}"
-    - "{{ inventory_hostname }}"
-    - localhost.localdomain
-    - "127.0.0.1"
-    - ::1
-  tags:
-    - mysql_security
-
-- name: remove the additional root accounts (ansible_hostname)
-  community.mysql.mysql_user:
-    name: root
-    host: "{{ ansible_hostname }}"
-    state: absent
-    login_unix_socket: "{{ mysql_socket }}"
-  become: yes
-  when: ansible_hostname != 'localhost'
-  tags:
-    - mysql_security
-
-- name: remove the test database
-  community.mysql.mysql_db:
-    name: test
-    state: absent
-    login_unix_socket: "{{ mysql_socket }}"
-  become: yes
-  tags:
-    - mysql_security
 
 
 ##
@@ -164,7 +123,7 @@
 ##
 - name: firewall configuration
   include_tasks: firewall.yml
-  when: mysql_firewall|bool
+  when: mysql_firewall|bool and ansible_os_family == 'Debian'
   tags:
     - firewall_config
 

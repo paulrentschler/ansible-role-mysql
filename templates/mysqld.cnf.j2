@@ -18,6 +18,7 @@ default-character-set     = {{ mysql_char_set|default('utf8mb4') }}
 
 
 [mysqld_safe]
+pid-file                  = {{ mysql_pid_file }}
 socket                    = {{ mysql_socket }}
 nice                      = 0
 
@@ -68,7 +69,7 @@ myisam-recover-options    = BACKUP
 #
 # Logging and replication
 #
-log_error                  = /var/log/mysql/error.log
+log_error                  = {{ mysql_logdir }}/error.log
 server-id                  = {{ mysql_server_id|default('1') }}
 {% if _mysql_version.version.major < 8 %}
 expire_logs_days           = {{ mysql_expire_logs_days|default(10) }}
@@ -83,11 +84,11 @@ max_binlog_size            = 100M
 #
 
 # Disabling symbolic-links is recommended to prevent assorted security risks
-#symbolic-links            = 0
+symbolic-links             = 0
 
 {% if mysql_force_tls|bool %}
 # Require secure transport for connections (TLS or sockets)
-require-secure-transport  = ON
+require-secure-transport   = ON
 {% endif %}
 
 # ssl-ca                    = /etc/mysql/cacert.pem
