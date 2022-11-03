@@ -102,6 +102,8 @@
 
 ##
 # Ensure the security of the server
+#
+# This is similar to the `mysql_secure_installation` script
 ##
 - name: ensure the MySQL server is running
   ansible.builtin.service:
