@@ -23,22 +23,13 @@
   include_tasks: rootpw.yml
   when: _mysql_installed.changed and ansible_os_family == 'RedHat'
 
-- name: get the version of MySQL (Debian)
-  community.mysql.mysql_info:
-    filter: version
-    login_unix_socket: "{{ mysql_socket }}"
-  become: yes
-  register: _mysql_version
-  when: ansible_os_family == 'Debian'
-  tags: always
-
-- name: get the version of MySQL (RedHat)
+- name: get the version of MySQL
   community.mysql.mysql_info:
     filter: version
     config_file: "/root/.my.cnf"
+    login_unix_socket: "{{ mysql_socket }}"
   become: yes
   register: _mysql_version
-  when: ansible_os_family == 'RedHat'
   tags: always
 
 
