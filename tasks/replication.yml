@@ -91,6 +91,13 @@
   tags:
     - mysql_repair_replication
 
+- name: replication | replica status
+  ansible.builtin.debug:
+    var: _mysql_replica_status
+  tags:
+    -mysql_replication_setup
+    -mysql_repair_replication
+
 
 ##
 # Initially configure a new replica

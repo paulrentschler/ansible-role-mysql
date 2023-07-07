@@ -32,6 +32,11 @@
   register: _mysql_version
   tags: always
 
+- name: MySQL version
+  ansible.builtin.debug:
+    var: _mysql_version
+  tags: always
+
 
 
 ##
