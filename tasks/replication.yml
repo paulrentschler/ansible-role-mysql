@@ -114,7 +114,7 @@
 
 - name: replication | reset the replication primary
   community.mysql.mysql_replication:
-    mode: resetmaster
+    mode: "reset{% if _mysql_version.version.major < 8 %}master{% else %}primary{% endif %}"
     login_unix_socket: "{{ mysql_socket }}"
   become: yes
   delegate_to: "{{ mysql_repl_primary_inventory_name }}"
@@ -224,7 +224,7 @@
 
 - name: replication | configure replica to replicate with the primary
   community.mysql.mysql_replication:
-    mode: changemaster
+    mode: "change{% if _mysql_version.version.major < 8 %}master{% else %}primary{% endif %}"
     master_host: "{{ mysql_repl_primary_ip }}"
     master_port: "{{ mysql_repl_primary_port }}"
     master_user: "{{ mysql_repl_user }}"
